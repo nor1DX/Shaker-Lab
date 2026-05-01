@@ -1,0 +1,42 @@
+# Gradle
+.gradle/
+/build/
+app/build/
+**/build/
+
+# Local properties (SDK path, API keys)
+local.properties
+
+# Android Studio / IntelliJ IDEA
+*.iml
+.idea/
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+
+# Keystore files
+*.jks
+*.keystore
+
+# APK / AAB outputs
+*.apk
+*.aab
+
+# ProGuard mapping
+/app/mapping/
+
+# Native build
+.externalNativeBuild/
+.cxx/
+
+# macOS
+.DS_Store
+
+# Captures (Android profiler)
+/captures
+
+# Design references & other projects in this folder
+/screen

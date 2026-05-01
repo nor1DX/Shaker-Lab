@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/catalogFragment">
+
+    <!-- Глобальный переход на детальный экран из любого таба -->
+    <action
+        android:id="@+id/action_global_detail"
+        app:destination="@id/detailFragment" />
+
+    <fragment
+        android:id="@+id/catalogFragment"
+        android:name="com.shakerlab.app.features.catalog.view.CatalogFragment"
+        android:label="@string/nav_catalog"
+        tools:layout="@layout/fragment_catalog" />
+
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="com.shakerlab.app.features.search.view.SearchFragment"
+        android:label="@string/nav_search"
+        tools:layout="@layout/fragment_search" />
+
+    <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="com.shakerlab.app.features.favorites.view.FavoritesFragment"
+        android:label="@string/nav_favorites"
+        tools:layout="@layout/fragment_favorites" />
+
+    <fragment
+        android:id="@+id/myBarFragment"
+        android:name="com.shakerlab.app.features.mybar.view.MyBarFragment"
+        android:label="@string/nav_my_bar"
+        tools:layout="@layout/fragment_my_bar" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.shakerlab.app.features.profile.view.ProfileFragment"
+        android:label="@string/nav_profile"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/detailFragment"
+        android:name="com.shakerlab.app.features.detail.view.DetailFragment"
+        android:label="Detail"
+        tools:layout="@layout/fragment_detail">
+        <argument
+            android:name="cocktailId"
+            app:argType="string" />
+    </fragment>
+
+</navigation>
