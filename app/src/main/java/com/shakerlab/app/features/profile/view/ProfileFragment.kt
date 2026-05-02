@@ -7,7 +7,10 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.shakerlab.app.R
 import com.shakerlab.app.databinding.FragmentProfileBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -55,11 +58,12 @@ class ProfileFragment : Fragment() {
         }
 
         binding.btnSignIn.setOnClickListener {
-            signInLauncher.launch(viewModel.buildSignInIntent(requireContext()))
+            signInLauncher.launch(buildSignInIntent())
         }
 
         binding.btnSignOut.setOnClickListener {
-            viewModel.signOut(requireContext())
+            GoogleSignIn.getClient(requireContext(), GoogleSignInOptions.DEFAULT_SIGN_IN).signOut()
+            viewModel.signOut()
         }
 
         binding.btnClearFavorites.setOnClickListener {
@@ -80,6 +84,14 @@ class ProfileFragment : Fragment() {
                 .show()
         }
     }
+
+    private fun buildSignInIntent() = GoogleSignIn.getClient(
+        requireContext(),
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+    ).signInIntent
 
     override fun onDestroyView() {
         super.onDestroyView()

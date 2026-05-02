@@ -1,6 +1,5 @@
 package com.shakerlab.app.features.profile.view
 
-import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -8,12 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.shakerlab.app.R
 import com.shakerlab.app.domain.repository.BarRepository
 import com.shakerlab.app.domain.repository.FavoritesRepository
 import kotlinx.coroutines.launch
@@ -31,14 +28,6 @@ class ProfileViewModel(
     private val _currentUser = MutableLiveData<FirebaseUser?>(auth.currentUser)
     val currentUser: LiveData<FirebaseUser?> = _currentUser
 
-    fun buildSignInIntent(context: Context): Intent {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(context.getString(R.string.default_web_client_id))
-            .requestEmail()
-            .build()
-        return GoogleSignIn.getClient(context, gso).signInIntent
-    }
-
     fun handleSignInResult(data: Intent?) {
         viewModelScope.launch {
             try {
@@ -53,8 +42,7 @@ class ProfileViewModel(
         }
     }
 
-    fun signOut(context: Context) {
-        GoogleSignIn.getClient(context, GoogleSignInOptions.DEFAULT_SIGN_IN).signOut()
+    fun signOut() {
         auth.signOut()
         _currentUser.value = null
     }
