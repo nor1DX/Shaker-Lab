@@ -1,10 +1,5 @@
 package com.shakerlab.app.domain.model
 
-data class Ingredient(
-    val name: String,
-    val measure: String
-)
-
 data class Cocktail(
     val id: String,
     val name: String,

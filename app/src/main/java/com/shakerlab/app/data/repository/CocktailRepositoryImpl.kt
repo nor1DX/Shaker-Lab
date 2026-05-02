@@ -19,13 +19,13 @@ class CocktailRepositoryImpl(private val service: CocktailService) : CocktailRep
             ?: error("Failed to load random cocktail")
 
     override suspend fun filterByCategory(category: String): List<CocktailPreview> =
-        service.filterByCategory(category).drinks?.map { it.toDomain().copy(category = category) } ?: emptyList()
+        service.filterByCategory(category).drinks?.map { it.toPreview().copy(category = category) } ?: emptyList()
 
     override suspend fun filterByAlcoholic(alcoholic: String): List<CocktailPreview> =
-        service.filterByAlcoholic(alcoholic).drinks?.map { it.toDomain() } ?: emptyList()
+        service.filterByAlcoholic(alcoholic).drinks?.map { it.toPreview() } ?: emptyList()
 
     override suspend fun filterByIngredient(ingredient: String): List<CocktailPreview> =
-        service.filterByIngredient(ingredient).drinks?.map { it.toDomain() } ?: emptyList()
+        service.filterByIngredient(ingredient).drinks?.map { it.toPreview() } ?: emptyList()
 
     override suspend fun getCategories(): List<String> =
         service.listCategories().drinks?.map { it.name } ?: emptyList()

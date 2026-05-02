@@ -25,7 +25,7 @@ class SearchVM(
 
     private val prefs = app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    private val _allResults = MutableLiveData<List<CocktailPreview>>(emptyList())
+    private val allResults = MutableLiveData<List<CocktailPreview>>(emptyList())
     private val _results = MutableLiveData<List<CocktailPreview>>(emptyList())
     val results: LiveData<List<CocktailPreview>> = _results
 
@@ -63,7 +63,7 @@ class SearchVM(
             _isEmpty.value = false
             try {
                 val cocktails = repository.searchByName(trimmed)
-                _allResults.value = cocktails
+                allResults.value = cocktails
                 applyFilter()
                 _isEmpty.value = _results.value.isNullOrEmpty()
                 saveRecentSearch(trimmed)
@@ -82,7 +82,7 @@ class SearchVM(
     }
 
     private fun applyFilter() {
-        val all = _allResults.value ?: emptyList()
+        val all = allResults.value ?: emptyList()
         _results.value = when (alcoholicFilter) {
             "Alcoholic" -> all.filter { it.isAlcoholic }
             "Non-alcoholic" -> all.filter { !it.isAlcoholic }
@@ -91,15 +91,10 @@ class SearchVM(
         _isEmpty.value = _results.value.isNullOrEmpty() && isSearchActive
     }
 
-    fun loadMore() {
-        // No random results appended after name search — API returns all matches at once
-        if (isSearchActive) return
-    }
-
     fun clearResults() {
         searchJob?.cancel()
         isSearchActive = false
-        _allResults.value = emptyList()
+        allResults.value = emptyList()
         _results.value = emptyList()
         _isEmpty.value = false
         _error.value = null
