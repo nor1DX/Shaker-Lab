@@ -59,17 +59,34 @@ class FavoritesRepositoryImpl(
 
     override suspend fun syncFromCloud() {
         val col = favCol() ?: return
-        val docs = col.get().await()
-        dao.clearAll()
-        docs.forEach { doc ->
-            dao.insert(
-                FavoriteEntity(
-                    cocktailId = doc.id,
-                    name = doc.getString("name") ?: "",
-                    thumbnail = doc.getString("thumbnail") ?: "",
-                    category = doc.getString("category") ?: ""
+
+        val localItems = dao.getAllOnce()
+        val localIds = localItems.map { it.cocktailId }.toSet()
+
+        val cloudDocs = col.get().await()
+        val cloudIds = cloudDocs.map { it.id }.toSet()
+
+        // Add cloud items missing locally
+        cloudDocs.forEach { doc ->
+            if (doc.id !in localIds) {
+                dao.insert(
+                    FavoriteEntity(
+                        cocktailId = doc.id,
+                        name = doc.getString("name") ?: "",
+                        thumbnail = doc.getString("thumbnail") ?: "",
+                        category = doc.getString("category") ?: ""
+                    )
                 )
-            )
+            }
+        }
+
+        // Push local items missing in cloud
+        localItems.forEach { entity ->
+            if (entity.cocktailId !in cloudIds) {
+                col.document(entity.cocktailId).set(
+                    mapOf("name" to entity.name, "thumbnail" to entity.thumbnail, "category" to entity.category)
+                )
+            }
         }
     }
 }

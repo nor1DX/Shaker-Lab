@@ -77,6 +77,7 @@ dependencies {
     // Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.lifecycle.livedata)
 
     // RecyclerView
     implementation(libs.androidx.recyclerview)

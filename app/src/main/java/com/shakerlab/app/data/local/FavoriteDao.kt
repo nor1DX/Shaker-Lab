@@ -12,6 +12,9 @@ interface FavoriteDao {
     @Query("SELECT * FROM favorites ORDER BY rowid DESC")
     fun getAll(): LiveData<List<FavoriteEntity>>
 
+    @Query("SELECT * FROM favorites")
+    suspend fun getAllOnce(): List<FavoriteEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: FavoriteEntity)
 

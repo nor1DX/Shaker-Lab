@@ -11,6 +11,9 @@ interface BarIngredientDao {
     @Query("SELECT name FROM bar_ingredients ORDER BY name ASC")
     fun getAll(): LiveData<List<String>>
 
+    @Query("SELECT name FROM bar_ingredients")
+    suspend fun getAllOnce(): List<String>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(entity: BarIngredientEntity)
 

@@ -42,10 +42,24 @@ class BarRepositoryImpl(
 
     override suspend fun syncFromCloud() {
         val col = barCol() ?: return
-        val docs = col.get().await()
-        dao.clearAll()
-        docs.forEach { doc ->
-            dao.insert(BarIngredientEntity(doc.getString("name") ?: doc.id))
+
+        val localNames = dao.getAllOnce().toSet()
+
+        val cloudDocs = col.get().await()
+        val cloudNames = cloudDocs.map { it.getString("name") ?: it.id }.toSet()
+
+        // Add cloud items missing locally
+        cloudNames.forEach { name ->
+            if (name !in localNames) {
+                dao.insert(BarIngredientEntity(name))
+            }
+        }
+
+        // Push local items missing in cloud
+        localNames.forEach { name ->
+            if (name !in cloudNames) {
+                col.document(name).set(mapOf("name" to name))
+            }
         }
     }
 }

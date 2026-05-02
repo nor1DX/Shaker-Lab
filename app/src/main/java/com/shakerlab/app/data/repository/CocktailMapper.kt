@@ -15,7 +15,7 @@ fun CocktailDetailDto.toDomain(): Cocktail {
         ingredient13 to measure13, ingredient14 to measure14, ingredient15 to measure15
     )
         .filter { !it.first.isNullOrBlank() }
-        .map { Ingredient(name = it.first!!, measure = it.second.orEmpty().trim()) }
+        .map { Ingredient(name = it.first!!.trim(), measure = it.second.orEmpty().trim()) }
 
     return Cocktail(
         id = id,

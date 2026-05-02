@@ -1,6 +1,7 @@
 package com.shakerlab.app.features.mybar.view
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
@@ -26,7 +27,21 @@ class MyBarVM(
     val barIngredients: LiveData<List<String>> = barRepository.getIngredients()
 
     private val _cocktails = MutableLiveData<List<CocktailPreview>>(emptyList())
-    val cocktails: LiveData<List<CocktailPreview>> = _cocktails
+    private val _filter = MutableLiveData("All")
+    val filterState: LiveData<String> = _filter
+
+    val cocktails: LiveData<List<CocktailPreview>> = MediatorLiveData<List<CocktailPreview>>().also { med ->
+        fun update() {
+            val list = _cocktails.value ?: emptyList()
+            med.value = when (_filter.value) {
+                "Alcoholic" -> list.filter { it.isAlcoholic }
+                "Non-Alcoholic" -> list.filter { !it.isAlcoholic }
+                else -> list
+            }
+        }
+        med.addSource(_cocktails) { update() }
+        med.addSource(_filter) { update() }
+    }
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -67,7 +82,13 @@ class MyBarVM(
         fetchJob = viewModelScope.launch {
             _isLoading.value = true
             try {
-                _cocktails.value = fetchPage(ingredients)
+                val results = mutableListOf<CocktailPreview>()
+                var attempts = 0
+                while (results.size < 10 && attempts < 5) {
+                    results += fetchPage(ingredients)
+                    attempts++
+                }
+                _cocktails.value = results
             } catch (_: Exception) {
                 _cocktails.value = emptyList()
             } finally {
@@ -83,7 +104,7 @@ class MyBarVM(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val more = fetchPage(ingredients)
+                val more = fetchWithRetry(ingredients)
                 if (more.isNotEmpty()) {
                     _cocktails.value = (_cocktails.value ?: emptyList()) + more
                 }
@@ -92,13 +113,21 @@ class MyBarVM(
         }
     }
 
+    private suspend fun fetchWithRetry(ingredients: List<String>, maxAttempts: Int = 3): List<CocktailPreview> {
+        repeat(maxAttempts) {
+            val result = fetchPage(ingredients)
+            if (result.isNotEmpty()) return result
+        }
+        return emptyList()
+    }
+
     // Fetches 20 random cocktails and keeps only those containing a bar ingredient.
     // Free CocktailDB API (v1) returns only 1 result per filterByIngredient call,
     // so we use getRandom() which returns full ingredient lists and filter locally.
     private suspend fun fetchPage(barIngredients: List<String>): List<CocktailPreview> {
         val normalized = barIngredients.map { it.lowercase() }.toSet()
         return supervisorScope {
-            (1..20).map {
+            (1..40).map {
                 async {
                     try { withTimeout(8_000) { cocktailRepository.getRandom() } }
                     catch (_: Exception) { null }
@@ -106,10 +135,15 @@ class MyBarVM(
             }.awaitAll().filterNotNull()
         }
             .filter { cocktail ->
-                seen.add(cocktail.id) &&
+                cocktail.id !in seen &&
                 cocktail.ingredients.any { it.name.lowercase() in normalized }
             }
+            .onEach { seen.add(it.id) }
             .map { CocktailPreview(it.id, it.name, it.thumbnail, it.category, it.isAlcoholic) }
+    }
+
+    fun setFilter(filter: String) {
+        _filter.value = filter
     }
 
     fun toggleFavorite(preview: CocktailPreview) {

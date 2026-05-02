@@ -1,5 +1,6 @@
 package com.shakerlab.app.features.mybar.view
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -54,7 +55,7 @@ class MyBarFragment : Fragment() {
             showAddIngredientDialog()
         }
 
-        binding.chipGroupFilter.isVisible = false
+        setupFilterChips()
 
         vm.barIngredients.observe(viewLifecycleOwner) { ingredients ->
             renderChips(ingredients)
@@ -70,6 +71,46 @@ class MyBarFragment : Fragment() {
         vm.isLoading.observe(viewLifecycleOwner) { loading ->
             binding.progressBar.isVisible = loading
             updateEmptyState()
+        }
+    }
+
+    private fun setupFilterChips() {
+        val filters = listOf("All", "Alcoholic", "Non-Alcoholic")
+        filters.forEach { label ->
+            val chip = buildFilterChip(label)
+            if (label == "All") chip.isChecked = true
+            binding.chipGroupFilter.addView(chip)
+        }
+        binding.chipGroupFilter.isVisible = true
+        binding.chipGroupFilter.setOnCheckedStateChangeListener { group, checkedIds ->
+            val id = checkedIds.firstOrNull() ?: return@setOnCheckedStateChangeListener
+            val chip = group.findViewById<Chip>(id)
+            vm.setFilter(chip.text.toString())
+        }
+    }
+
+    private fun buildFilterChip(text: String): Chip {
+        val gold = 0xFFF5C842.toInt()
+        val darkSurface = 0xFF252525.toInt()
+        val black = 0xFF000000.toInt()
+        val gray = 0xFF999999.toInt()
+        val outline = 0xFF3A3A3A.toInt()
+        return Chip(requireContext()).apply {
+            this.text = text
+            isCheckable = true
+            chipBackgroundColor = ColorStateList(
+                arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+                intArrayOf(gold, darkSurface)
+            )
+            setTextColor(ColorStateList(
+                arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+                intArrayOf(black, gray)
+            ))
+            chipStrokeColor = ColorStateList(
+                arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+                intArrayOf(gold, outline)
+            )
+            chipStrokeWidth = resources.displayMetrics.density * 1.5f
         }
     }
 
