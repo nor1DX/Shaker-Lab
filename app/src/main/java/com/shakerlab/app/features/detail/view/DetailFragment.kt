@@ -36,6 +36,7 @@ class DetailFragment : Fragment() {
 
         binding.btnBack.setOnClickListener { findNavController().navigateUp() }
         binding.btnFavorite.setOnClickListener { vm.toggleFavorite() }
+        binding.fabNextRandom.setOnClickListener { vm.getNextRandom() }
 
         vm.loadCocktail(cocktailId)
 
@@ -65,6 +66,7 @@ class DetailFragment : Fragment() {
         binding.textCategory.text = cocktail.category
         binding.textAlcoholic.text = if (cocktail.isAlcoholic) "Alcoholic" else "Non-alcoholic"
         binding.textInstructions.text = cocktail.instructions
+        binding.fabNextRandom.isVisible = true
 
         binding.containerIngredients.removeAllViews()
         cocktail.ingredients.forEach { ingredient ->

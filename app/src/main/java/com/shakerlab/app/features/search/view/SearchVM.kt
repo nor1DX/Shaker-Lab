@@ -5,13 +5,12 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.shakerlab.app.domain.model.CocktailPreview
 import com.shakerlab.app.domain.repository.CocktailRepository
+import com.shakerlab.app.domain.repository.FavoritesRepository
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 private const val PREFS_NAME = "search_prefs"
@@ -20,11 +19,13 @@ private const val MAX_RECENT = 8
 
 class SearchVM(
     app: Application,
-    private val repository: CocktailRepository
+    private val repository: CocktailRepository,
+    private val favoritesRepository: FavoritesRepository
 ) : AndroidViewModel(app) {
 
     private val prefs = app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
+    private val _allResults = MutableLiveData<List<CocktailPreview>>(emptyList())
     private val _results = MutableLiveData<List<CocktailPreview>>(emptyList())
     val results: LiveData<List<CocktailPreview>> = _results
 
@@ -40,28 +41,31 @@ class SearchVM(
     private val _isEmpty = MutableLiveData(false)
     val isEmpty: LiveData<Boolean> = _isEmpty
 
-    private var searchJob: Job? = null
-    private val seen = mutableSetOf<String>()
-
-    init {
-        loadRecentSearches()
+    val favoriteIds: LiveData<Set<String>> = favoritesRepository.getAll().map { list ->
+        list.map { it.id }.toSet()
     }
+
+    private var searchJob: Job? = null
+    private var isSearchActive = false
+    var alcoholicFilter = "All"
+        private set
+
+    init { loadRecentSearches() }
 
     fun search(query: String) {
         val trimmed = query.trim()
         if (trimmed.isEmpty()) return
-
         searchJob?.cancel()
-        seen.clear()
+        isSearchActive = true
         searchJob = viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             _isEmpty.value = false
             try {
                 val cocktails = repository.searchByName(trimmed)
-                cocktails.forEach { seen.add(it.id) }
-                _results.value = cocktails
-                _isEmpty.value = cocktails.isEmpty()
+                _allResults.value = cocktails
+                applyFilter()
+                _isEmpty.value = _results.value.isNullOrEmpty()
                 saveRecentSearch(trimmed)
             } catch (e: Exception) {
                 _error.value = "Search error"
@@ -72,32 +76,44 @@ class SearchVM(
         }
     }
 
-    fun loadMore() {
-        if (_isLoading.value == true) return
-        if ((_results.value ?: emptyList()).isEmpty()) return
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val newItems = coroutineScope {
-                    (1..12).map { async { repository.getRandom() } }.awaitAll()
-                }
-                    .filter { seen.add(it.id) }
-                    .map { CocktailPreview(it.id, it.name, it.thumbnail, it.category) }
-                _results.value = (_results.value ?: emptyList()) + newItems
-            } catch (_: Exception) { }
-            finally {
-                _isLoading.value = false
-            }
+    fun setAlcoholicFilter(filter: String) {
+        alcoholicFilter = filter
+        applyFilter()
+    }
+
+    private fun applyFilter() {
+        val all = _allResults.value ?: emptyList()
+        _results.value = when (alcoholicFilter) {
+            "Alcoholic" -> all.filter { it.isAlcoholic }
+            "Non-alcoholic" -> all.filter { !it.isAlcoholic }
+            else -> all
         }
+        _isEmpty.value = _results.value.isNullOrEmpty() && isSearchActive
+    }
+
+    fun loadMore() {
+        // No random results appended after name search — API returns all matches at once
+        if (isSearchActive) return
     }
 
     fun clearResults() {
         searchJob?.cancel()
-        seen.clear()
+        isSearchActive = false
+        _allResults.value = emptyList()
         _results.value = emptyList()
         _isEmpty.value = false
         _error.value = null
         _isLoading.value = false
+    }
+
+    fun toggleFavorite(preview: CocktailPreview) {
+        viewModelScope.launch {
+            if (preview.id in (favoriteIds.value ?: emptySet())) {
+                favoritesRepository.remove(preview.id)
+            } else {
+                favoritesRepository.addPreview(preview)
+            }
+        }
     }
 
     fun clearRecentSearches() {

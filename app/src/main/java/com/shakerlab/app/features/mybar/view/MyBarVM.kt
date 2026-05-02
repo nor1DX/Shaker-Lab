@@ -4,19 +4,23 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.shakerlab.app.domain.model.CocktailPreview
 import com.shakerlab.app.domain.repository.BarRepository
 import com.shakerlab.app.domain.repository.CocktailRepository
+import com.shakerlab.app.domain.repository.FavoritesRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeout
 
 class MyBarVM(
     private val barRepository: BarRepository,
-    private val cocktailRepository: CocktailRepository
+    private val cocktailRepository: CocktailRepository,
+    private val favoritesRepository: FavoritesRepository
 ) : ViewModel() {
 
     val barIngredients: LiveData<List<String>> = barRepository.getIngredients()
@@ -29,6 +33,10 @@ class MyBarVM(
 
     private val _allIngredients = MutableLiveData<List<String>>(emptyList())
     val allIngredients: LiveData<List<String>> = _allIngredients
+
+    val favoriteIds: LiveData<Set<String>> = favoritesRepository.getAll().map { list ->
+        list.map { it.id }.toSet()
+    }
 
     private var fetchJob: Job? = null
     private val seen = mutableSetOf<String>()
@@ -44,9 +52,8 @@ class MyBarVM(
 
     private fun loadAllIngredients() {
         viewModelScope.launch {
-            try {
-                _allIngredients.value = cocktailRepository.getIngredients()
-            } catch (_: Exception) { }
+            try { _allIngredients.value = cocktailRepository.getIngredients() }
+            catch (_: Exception) { }
         }
     }
 
@@ -60,7 +67,7 @@ class MyBarVM(
         fetchJob = viewModelScope.launch {
             _isLoading.value = true
             try {
-                _cocktails.value = fetchRandomPage()
+                _cocktails.value = fetchPage(ingredients)
             } catch (_: Exception) {
                 _cocktails.value = emptyList()
             } finally {
@@ -71,30 +78,48 @@ class MyBarVM(
 
     fun loadMore() {
         if (_isLoading.value == true) return
-        if ((barIngredients.value ?: emptyList()).isEmpty()) return
+        val ingredients = barIngredients.value ?: return
+        if (ingredients.isEmpty()) return
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val newItems = fetchRandomPage()
-                _cocktails.value = (_cocktails.value ?: emptyList()) + newItems
+                val more = fetchPage(ingredients)
+                if (more.isNotEmpty()) {
+                    _cocktails.value = (_cocktails.value ?: emptyList()) + more
+                }
             } catch (_: Exception) { }
-            finally {
-                _isLoading.value = false
+            finally { _isLoading.value = false }
+        }
+    }
+
+    // Fetches 20 random cocktails and keeps only those containing a bar ingredient.
+    // Free CocktailDB API (v1) returns only 1 result per filterByIngredient call,
+    // so we use getRandom() which returns full ingredient lists and filter locally.
+    private suspend fun fetchPage(barIngredients: List<String>): List<CocktailPreview> {
+        val normalized = barIngredients.map { it.lowercase() }.toSet()
+        return supervisorScope {
+            (1..20).map {
+                async {
+                    try { withTimeout(8_000) { cocktailRepository.getRandom() } }
+                    catch (_: Exception) { null }
+                }
+            }.awaitAll().filterNotNull()
+        }
+            .filter { cocktail ->
+                seen.add(cocktail.id) &&
+                cocktail.ingredients.any { it.name.lowercase() in normalized }
+            }
+            .map { CocktailPreview(it.id, it.name, it.thumbnail, it.category, it.isAlcoholic) }
+    }
+
+    fun toggleFavorite(preview: CocktailPreview) {
+        viewModelScope.launch {
+            if (preview.id in (favoriteIds.value ?: emptySet())) {
+                favoritesRepository.remove(preview.id)
+            } else {
+                favoritesRepository.addPreview(preview)
             }
         }
-    }
-
-    private suspend fun fetchRandomPage(): List<CocktailPreview> {
-        val randoms = coroutineScope {
-            (1..12).map { async { cocktailRepository.getRandom() } }.awaitAll()
-        }
-        return randoms
-            .filter { seen.add(it.id) }
-            .map { CocktailPreview(it.id, it.name, it.thumbnail, it.category) }
-    }
-
-    fun refresh() {
-        fetchMatchingCocktails(barIngredients.value ?: emptyList())
     }
 
     fun addIngredient(name: String) {

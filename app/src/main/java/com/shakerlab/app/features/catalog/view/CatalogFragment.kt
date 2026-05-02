@@ -11,8 +11,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.chip.Chip
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.chip.Chip
 import com.shakerlab.app.NavGraphDirections
 import com.shakerlab.app.R
 import com.shakerlab.app.databinding.FragmentCatalogBinding
@@ -25,10 +25,10 @@ class CatalogFragment : Fragment() {
 
     private val vm: CatalogVM by viewModel()
 
-    private val adapter = CocktailPreviewAdapter { preview ->
-        val action = NavGraphDirections.actionGlobalDetail(preview.id)
-        findNavController().navigate(action)
-    }
+    private val adapter = CocktailPreviewAdapter(
+        onClick = { preview -> findNavController().navigate(NavGraphDirections.actionGlobalDetail(preview.id)) },
+        onFavorite = { preview -> vm.toggleFavorite(preview) }
+    )
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentCatalogBinding.inflate(inflater, container, false)
@@ -69,21 +69,19 @@ class CatalogFragment : Fragment() {
         }
 
         vm.categories.observe(viewLifecycleOwner) { categories ->
-            binding.chipGroupCategories.removeAllViews()
-            categories.forEach { category ->
+            if (binding.chipGroupCategories.childCount > 0) return@observe
+            categories.forEachIndexed { index, category ->
                 val chip = buildFilterChip(category)
+                if (index == 0) chip.isChecked = true
                 binding.chipGroupCategories.addView(chip)
             }
-            (binding.chipGroupCategories.getChildAt(0) as? Chip)?.isChecked = true
         }
 
-        vm.cocktails.observe(viewLifecycleOwner) { cocktails ->
-            adapter.submitList(cocktails)
-        }
+        vm.cocktails.observe(viewLifecycleOwner) { adapter.submitList(it) }
 
-        vm.isLoading.observe(viewLifecycleOwner) { loading ->
-            binding.progressBar.isVisible = loading
-        }
+        vm.favoriteIds.observe(viewLifecycleOwner) { ids -> adapter.favoriteIds = ids }
+
+        vm.isLoading.observe(viewLifecycleOwner) { binding.progressBar.isVisible = it }
 
         vm.error.observe(viewLifecycleOwner) { error ->
             if (error != null) Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()

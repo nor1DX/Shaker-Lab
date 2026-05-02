@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.androidx.navigation.safeargs)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -71,6 +72,7 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel)
@@ -78,6 +80,15 @@ dependencies {
 
     // RecyclerView
     implementation(libs.androidx.recyclerview)
+
+    // Splash screen
+    implementation(libs.androidx.splashscreen)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.play.services.auth)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

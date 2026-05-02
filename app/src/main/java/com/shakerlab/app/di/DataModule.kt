@@ -1,6 +1,8 @@
 package com.shakerlab.app.di
 
 import androidx.room.Room
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.shakerlab.app.data.local.AppDatabase
 import com.shakerlab.app.data.repository.BarRepositoryImpl
 import com.shakerlab.app.data.repository.CocktailRepositoryImpl
@@ -12,6 +14,9 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val dataModule = module {
+    single { FirebaseAuth.getInstance() }
+    single { FirebaseFirestore.getInstance() }
+
     single {
         Room.databaseBuilder(androidContext(), AppDatabase::class.java, "shakerlab.db")
             .fallbackToDestructiveMigration()
@@ -20,6 +25,6 @@ val dataModule = module {
     single { get<AppDatabase>().favoriteDao() }
     single { get<AppDatabase>().barIngredientDao() }
     single<CocktailRepository> { CocktailRepositoryImpl(get()) }
-    single<FavoritesRepository> { FavoritesRepositoryImpl(get()) }
-    single<BarRepository> { BarRepositoryImpl(get()) }
+    single<FavoritesRepository> { FavoritesRepositoryImpl(get(), get(), get()) }
+    single<BarRepository> { BarRepositoryImpl(get(), get(), get()) }
 }

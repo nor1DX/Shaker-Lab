@@ -35,6 +35,7 @@
             android:contentDescription="@null" />
 
         <TextView
+            android:id="@+id/text_user_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Guest"
@@ -44,12 +45,35 @@
             android:layout_marginBottom="4dp" />
 
         <TextView
+            android:id="@+id/text_user_email"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Your cocktail stats"
+            android:text="Not signed in"
             android:textSize="13sp"
             android:textColor="@color/color_text_secondary"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="16dp" />
+
+        <!-- Sign In button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_sign_in"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="Sign in with Google"
+            android:textColor="@color/color_bg"
+            app:backgroundTint="@color/color_gold" />
+
+        <!-- Sign Out button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_sign_out"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="Sign out"
+            android:textColor="@color/color_text_secondary"
+            android:visibility="gone"
+            app:strokeColor="@color/color_outline" />
 
         <!-- Stats cards -->
         <LinearLayout

@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shakerlab.app.databinding.FragmentProfileBinding
@@ -15,6 +17,12 @@ class ProfileFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val vm: ProfileVM by viewModel()
+
+    private val signInLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        vm.handleSignInResult(result.data)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
@@ -30,6 +38,28 @@ class ProfileFragment : Fragment() {
 
         vm.barCount.observe(viewLifecycleOwner) { count ->
             binding.textBarCount.text = count.toString()
+        }
+
+        vm.currentUser.observe(viewLifecycleOwner) { user ->
+            if (user != null) {
+                binding.textUserName.text = user.displayName ?: "User"
+                binding.textUserEmail.text = user.email ?: ""
+                binding.btnSignIn.isVisible = false
+                binding.btnSignOut.isVisible = true
+            } else {
+                binding.textUserName.text = "Guest"
+                binding.textUserEmail.text = "Not signed in"
+                binding.btnSignIn.isVisible = true
+                binding.btnSignOut.isVisible = false
+            }
+        }
+
+        binding.btnSignIn.setOnClickListener {
+            signInLauncher.launch(vm.buildSignInIntent(requireContext()))
+        }
+
+        binding.btnSignOut.setOnClickListener {
+            vm.signOut(requireContext())
         }
 
         binding.btnClearFavorites.setOnClickListener {

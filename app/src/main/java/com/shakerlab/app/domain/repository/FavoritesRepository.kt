@@ -8,6 +8,8 @@ interface FavoritesRepository {
     fun getAll(): LiveData<List<CocktailPreview>>
     fun isFavorite(id: String): LiveData<Boolean>
     suspend fun add(cocktail: Cocktail)
+    suspend fun addPreview(preview: CocktailPreview)
     suspend fun remove(id: String)
     suspend fun clearAll()
+    suspend fun syncFromCloud()
 }

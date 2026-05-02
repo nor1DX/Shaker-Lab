@@ -33,7 +33,8 @@ fun CocktailDetailDto.toPreview() = CocktailPreview(
     id = id,
     name = name,
     thumbnail = thumbnail.orEmpty(),
-    category = category.orEmpty()
+    category = category.orEmpty(),
+    isAlcoholic = alcoholic == "Alcoholic"
 )
 
 fun CocktailPreviewDto.toDomain() = CocktailPreview(

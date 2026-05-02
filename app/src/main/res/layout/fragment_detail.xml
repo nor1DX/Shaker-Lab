@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/color_bg">
@@ -15,7 +16,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Hero image -->
             <ImageView
                 android:id="@+id/image_cocktail"
                 android:layout_width="match_parent"
@@ -23,16 +23,14 @@
                 android:scaleType="centerCrop"
                 android:contentDescription="@null" />
 
-            <!-- Content card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp"
                 android:paddingTop="20dp"
-                android:paddingBottom="32dp">
+                android:paddingBottom="96dp">
 
-                <!-- Name -->
                 <TextView
                     android:id="@+id/text_name"
                     android:layout_width="match_parent"
@@ -42,7 +40,6 @@
                     android:textColor="@color/color_text_primary"
                     android:layout_marginBottom="12dp" />
 
-                <!-- Tags row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -74,7 +71,6 @@
 
                 </LinearLayout>
 
-                <!-- Ingredients header -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -84,17 +80,15 @@
                     android:textColor="@color/color_text_primary"
                     android:layout_marginBottom="12dp" />
 
-                <!-- Ingredients list -->
                 <LinearLayout
                     android:id="@+id/container_ingredients"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:background="@color/color_surface"
-                    android:padding="4dp"
+                    android:paddingVertical="4dp"
                     android:layout_marginBottom="24dp" />
 
-                <!-- Instructions header -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -110,8 +104,7 @@
                     android:layout_height="wrap_content"
                     android:textSize="14sp"
                     android:textColor="@color/color_text_secondary"
-                    android:lineSpacingMultiplier="1.6"
-                    android:layout_marginBottom="32dp" />
+                    android:lineSpacingMultiplier="1.6" />
 
             </LinearLayout>
         </LinearLayout>
@@ -120,25 +113,40 @@
     <!-- Back button -->
     <ImageButton
         android:id="@+id/btn_back"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:layout_margin="16dp"
-        android:background="#99000000"
+        android:background="@drawable/bg_circle_dark"
         android:src="@drawable/ic_arrow_back"
         android:contentDescription="@null"
-        android:padding="8dp" />
+        android:padding="10dp"
+        android:elevation="4dp" />
 
     <!-- Favorite button -->
     <ImageButton
         android:id="@+id/btn_favorite"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:layout_margin="16dp"
         android:layout_gravity="top|end"
-        android:background="#99000000"
+        android:background="@drawable/bg_circle_dark"
         android:src="@drawable/ic_favorites_outline"
         android:contentDescription="@null"
-        android:padding="8dp" />
+        android:padding="10dp"
+        android:elevation="4dp" />
+
+    <!-- Random (next) FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_next_random"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="20dp"
+        android:src="@drawable/ic_refresh"
+        android:contentDescription="@null"
+        app:backgroundTint="@color/color_gold"
+        app:tint="@color/black"
+        android:visibility="gone" />
 
     <ProgressBar
         android:id="@+id/progress_bar"

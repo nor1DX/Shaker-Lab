@@ -1,6 +1,5 @@
 package com.shakerlab.app.features.mybar.view
 
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -26,9 +25,10 @@ class MyBarFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val vm: MyBarVM by viewModel()
-    private val adapter = CocktailPreviewAdapter { preview ->
-        findNavController().navigate(NavGraphDirections.actionGlobalDetail(preview.id))
-    }
+    private val adapter = CocktailPreviewAdapter(
+        onClick = { preview -> findNavController().navigate(NavGraphDirections.actionGlobalDetail(preview.id)) },
+        onFavorite = { preview -> vm.toggleFavorite(preview) }
+    )
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentMyBarBinding.inflate(inflater, container, false)
@@ -50,7 +50,11 @@ class MyBarFragment : Fragment() {
             }
         })
 
-        binding.btnAddIngredient.setOnClickListener { showAddIngredientDialog() }
+        binding.btnAddIngredient.setOnClickListener {
+            showAddIngredientDialog()
+        }
+
+        binding.chipGroupFilter.isVisible = false
 
         vm.barIngredients.observe(viewLifecycleOwner) { ingredients ->
             renderChips(ingredients)
@@ -60,6 +64,8 @@ class MyBarFragment : Fragment() {
             adapter.submitList(cocktails)
             updateEmptyState()
         }
+
+        vm.favoriteIds.observe(viewLifecycleOwner) { ids -> adapter.favoriteIds = ids }
 
         vm.isLoading.observe(viewLifecycleOwner) { loading ->
             binding.progressBar.isVisible = loading
@@ -86,16 +92,15 @@ class MyBarFragment : Fragment() {
         binding.chipGroupIngredients.removeAllViews()
         val gold = 0xFFF5C842.toInt()
         val darkSurface = 0xFF2A2218.toInt()
-        val black = 0xFF000000.toInt()
 
         ingredients.forEach { name ->
             val chip = Chip(requireContext()).apply {
                 text = name
                 isCloseIconVisible = true
-                chipBackgroundColor = ColorStateList.valueOf(darkSurface)
+                chipBackgroundColor = android.content.res.ColorStateList.valueOf(darkSurface)
                 setTextColor(gold)
-                closeIconTint = ColorStateList.valueOf(gold)
-                chipStrokeColor = ColorStateList.valueOf(gold)
+                closeIconTint = android.content.res.ColorStateList.valueOf(gold)
+                chipStrokeColor = android.content.res.ColorStateList.valueOf(gold)
                 chipStrokeWidth = resources.displayMetrics.density * 1f
                 setOnCloseIconClickListener { vm.removeIngredient(name) }
             }

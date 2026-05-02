@@ -47,15 +47,27 @@ class DetailVM(
         }
     }
 
+    fun getNextRandom() {
+        if (_isLoading.value == true) return
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val next = repository.getRandom()
+                loadCocktail(next.id)
+            } catch (e: Exception) {
+                _error.value = "Failed to load random cocktail"
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun toggleFavorite() {
         val cocktail = _cocktail.value ?: return
         val currentlyFavorite = _isFavorite.value ?: false
         viewModelScope.launch {
-            if (currentlyFavorite) {
-                favoritesRepository.remove(cocktail.id)
-            } else {
-                favoritesRepository.add(cocktail)
-            }
+            if (currentlyFavorite) favoritesRepository.remove(cocktail.id)
+            else favoritesRepository.add(cocktail)
         }
     }
 }

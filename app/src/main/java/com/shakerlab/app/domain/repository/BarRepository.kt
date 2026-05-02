@@ -7,4 +7,5 @@ interface BarRepository {
     suspend fun add(name: String)
     suspend fun remove(name: String)
     suspend fun clearAll()
+    suspend fun syncFromCloud()
 }

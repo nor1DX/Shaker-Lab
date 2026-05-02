@@ -60,6 +60,18 @@
         android:background="@color/color_outline"
         android:layout_marginTop="4dp" />
 
+    <!-- Filter chips -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group_filter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        android:visibility="gone" />
+
     <!-- Cocktail grid / empty state -->
     <FrameLayout
         android:layout_width="match_parent"
