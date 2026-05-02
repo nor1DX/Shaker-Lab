@@ -6,18 +6,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.shakerlab.app.domain.model.CocktailPreview
-import com.shakerlab.app.domain.repository.CocktailRepository
-import com.shakerlab.app.domain.repository.FavoritesRepository
+import com.shakerlab.app.domain.usecase.cocktail.FilterByCategoryUseCase
+import com.shakerlab.app.domain.usecase.cocktail.GetCategoriesUseCase
+import com.shakerlab.app.domain.usecase.cocktail.GetRandomCocktailUseCase
+import com.shakerlab.app.domain.usecase.favorites.GetFavoritesUseCase
+import com.shakerlab.app.domain.usecase.favorites.ToggleFavoriteUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 
 class CatalogViewModel(
-    private val repository: CocktailRepository,
-    private val favoritesRepository: FavoritesRepository
+    private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val filterByCategoryUseCase: FilterByCategoryUseCase,
+    private val getRandomCocktailUseCase: GetRandomCocktailUseCase,
+    private val getFavoritesUseCase: GetFavoritesUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase
 ) : ViewModel() {
 
     private val _cocktails = MutableLiveData<List<CocktailPreview>>()
@@ -35,7 +41,7 @@ class CatalogViewModel(
     private val _randomId = MutableLiveData<String?>()
     val randomId: LiveData<String?> = _randomId
 
-    val favoriteIds: LiveData<Set<String>> = favoritesRepository.getAll().map { list ->
+    val favoriteIds: LiveData<Set<String>> = getFavoritesUseCase().map { list ->
         list.map { it.id }.toSet()
     }
 
@@ -50,7 +56,7 @@ class CatalogViewModel(
     private fun loadCategories() {
         viewModelScope.launch {
             try {
-                val cats = repository.getCategories()
+                val cats = getCategoriesUseCase()
                 _categories.value = cats
                 if (cats.isNotEmpty()) loadByCategory(cats.first())
             } catch (_: Exception) { }
@@ -66,7 +72,7 @@ class CatalogViewModel(
             _isLoading.value = true
             _error.value = null
             try {
-                val cocktails = repository.filterByCategory(category)
+                val cocktails = filterByCategoryUseCase(category)
                 cocktails.forEach { seen.add(it.id) }
                 _cocktails.value = cocktails
             } catch (e: kotlinx.coroutines.CancellationException) {
@@ -87,7 +93,7 @@ class CatalogViewModel(
                 val newItems = supervisorScope {
                     (1..6).map {
                         async {
-                            try { withTimeout(10_000) { repository.getRandom() } }
+                            try { withTimeout(10_000) { getRandomCocktailUseCase() } }
                             catch (_: Exception) { null }
                         }
                     }.awaitAll().filterNotNull()
@@ -107,7 +113,7 @@ class CatalogViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val cocktail = repository.getRandom()
+                val cocktail = getRandomCocktailUseCase()
                 _randomId.value = cocktail.id
                 _randomId.value = null
             } catch (_: Exception) { }
@@ -117,11 +123,7 @@ class CatalogViewModel(
 
     fun toggleFavorite(preview: CocktailPreview) {
         viewModelScope.launch {
-            if (preview.id in (favoriteIds.value ?: emptySet())) {
-                favoritesRepository.remove(preview.id)
-            } else {
-                favoritesRepository.addPreview(preview)
-            }
+            toggleFavoriteUseCase(preview, favoriteIds.value ?: emptySet())
         }
     }
 }

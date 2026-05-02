@@ -8,9 +8,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.shakerlab.app.domain.model.CocktailPreview
-import com.shakerlab.app.domain.repository.BarRepository
-import com.shakerlab.app.domain.repository.CocktailRepository
-import com.shakerlab.app.domain.repository.FavoritesRepository
+import com.shakerlab.app.domain.usecase.bar.AddBarIngredientUseCase
+import com.shakerlab.app.domain.usecase.bar.GetBarIngredientsUseCase
+import com.shakerlab.app.domain.usecase.bar.RemoveBarIngredientUseCase
+import com.shakerlab.app.domain.usecase.cocktail.GetAllIngredientsUseCase
+import com.shakerlab.app.domain.usecase.cocktail.GetRandomCocktailUseCase
+import com.shakerlab.app.domain.usecase.favorites.GetFavoritesUseCase
+import com.shakerlab.app.domain.usecase.favorites.ToggleFavoriteUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -19,12 +23,16 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 
 class MyBarViewModel(
-    private val barRepository: BarRepository,
-    private val cocktailRepository: CocktailRepository,
-    private val favoritesRepository: FavoritesRepository
+    private val getBarIngredientsUseCase: GetBarIngredientsUseCase,
+    private val addBarIngredientUseCase: AddBarIngredientUseCase,
+    private val removeBarIngredientUseCase: RemoveBarIngredientUseCase,
+    private val getRandomCocktailUseCase: GetRandomCocktailUseCase,
+    private val getAllIngredientsUseCase: GetAllIngredientsUseCase,
+    private val getFavoritesUseCase: GetFavoritesUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase
 ) : ViewModel() {
 
-    val barIngredients: LiveData<List<String>> = barRepository.getIngredients()
+    val barIngredients: LiveData<List<String>> = getBarIngredientsUseCase()
 
     private val _cocktails = MutableLiveData<List<CocktailPreview>>(emptyList())
     private val _filter = MutableLiveData("All")
@@ -49,7 +57,7 @@ class MyBarViewModel(
     private val _allIngredients = MutableLiveData<List<String>>(emptyList())
     val allIngredients: LiveData<List<String>> = _allIngredients
 
-    val favoriteIds: LiveData<Set<String>> = favoritesRepository.getAll().map { list ->
+    val favoriteIds: LiveData<Set<String>> = getFavoritesUseCase().map { list ->
         list.map { it.id }.toSet()
     }
 
@@ -67,7 +75,7 @@ class MyBarViewModel(
 
     private fun loadAllIngredients() {
         viewModelScope.launch {
-            try { _allIngredients.value = cocktailRepository.getIngredients() }
+            try { _allIngredients.value = getAllIngredientsUseCase() }
             catch (_: Exception) { }
         }
     }
@@ -121,7 +129,6 @@ class MyBarViewModel(
         return emptyList()
     }
 
-    // Fetches 20 random cocktails and keeps only those containing a bar ingredient.
     // Free CocktailDB API (v1) returns only 1 result per filterByIngredient call,
     // so we use getRandom() which returns full ingredient lists and filter locally.
     private suspend fun fetchPage(barIngredients: List<String>): List<CocktailPreview> {
@@ -129,7 +136,7 @@ class MyBarViewModel(
         return supervisorScope {
             (1..40).map {
                 async {
-                    try { withTimeout(8_000) { cocktailRepository.getRandom() } }
+                    try { withTimeout(8_000) { getRandomCocktailUseCase() } }
                     catch (_: Exception) { null }
                 }
             }.awaitAll().filterNotNull()
@@ -148,20 +155,16 @@ class MyBarViewModel(
 
     fun toggleFavorite(preview: CocktailPreview) {
         viewModelScope.launch {
-            if (preview.id in (favoriteIds.value ?: emptySet())) {
-                favoritesRepository.remove(preview.id)
-            } else {
-                favoritesRepository.addPreview(preview)
-            }
+            toggleFavoriteUseCase(preview, favoriteIds.value ?: emptySet())
         }
     }
 
     fun addIngredient(name: String) {
-        viewModelScope.launch { barRepository.add(name.trim()) }
+        viewModelScope.launch { addBarIngredientUseCase(name.trim()) }
     }
 
     fun removeIngredient(name: String) {
-        viewModelScope.launch { barRepository.remove(name) }
+        viewModelScope.launch { removeBarIngredientUseCase(name) }
     }
 
     override fun onCleared() {

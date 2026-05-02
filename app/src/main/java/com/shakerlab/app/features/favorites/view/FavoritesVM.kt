@@ -5,18 +5,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.shakerlab.app.domain.model.CocktailPreview
-import com.shakerlab.app.domain.repository.FavoritesRepository
+import com.shakerlab.app.domain.usecase.favorites.GetFavoritesUseCase
+import com.shakerlab.app.domain.usecase.favorites.ToggleFavoriteUseCase
 import kotlinx.coroutines.launch
 
-class FavoritesViewModel(private val repository: FavoritesRepository) : ViewModel() {
+class FavoritesViewModel(
+    private val getFavoritesUseCase: GetFavoritesUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase
+) : ViewModel() {
 
-    val favorites: LiveData<List<CocktailPreview>> = repository.getAll()
+    val favorites: LiveData<List<CocktailPreview>> = getFavoritesUseCase()
 
-    val favoriteIds: LiveData<Set<String>> = repository.getAll().map { list ->
+    val favoriteIds: LiveData<Set<String>> = getFavoritesUseCase().map { list ->
         list.map { it.id }.toSet()
     }
 
     fun toggleFavorite(preview: CocktailPreview) {
-        viewModelScope.launch { repository.remove(preview.id) }
+        viewModelScope.launch {
+            toggleFavoriteUseCase(preview, favoriteIds.value ?: emptySet())
+        }
     }
 }

@@ -6,13 +6,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shakerlab.app.domain.model.Cocktail
-import com.shakerlab.app.domain.repository.CocktailRepository
-import com.shakerlab.app.domain.repository.FavoritesRepository
+import com.shakerlab.app.domain.usecase.cocktail.GetCocktailByIdUseCase
+import com.shakerlab.app.domain.usecase.cocktail.GetRandomCocktailUseCase
+import com.shakerlab.app.domain.usecase.favorites.IsFavoriteUseCase
+import com.shakerlab.app.domain.usecase.favorites.ToggleFavoriteUseCase
 import kotlinx.coroutines.launch
 
 class DetailViewModel(
-    private val repository: CocktailRepository,
-    private val favoritesRepository: FavoritesRepository
+    private val getCocktailByIdUseCase: GetCocktailByIdUseCase,
+    private val getRandomCocktailUseCase: GetRandomCocktailUseCase,
+    private val isFavoriteUseCase: IsFavoriteUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase
 ) : ViewModel() {
 
     private val _cocktail = MutableLiveData<Cocktail?>()
@@ -30,7 +34,7 @@ class DetailViewModel(
 
     fun loadCocktail(id: String) {
         favoriteSource?.let { _isFavorite.removeSource(it) }
-        val src = favoritesRepository.isFavorite(id)
+        val src = isFavoriteUseCase(id)
         favoriteSource = src
         _isFavorite.addSource(src) { _isFavorite.value = it }
 
@@ -38,7 +42,7 @@ class DetailViewModel(
             _isLoading.value = true
             _error.value = null
             try {
-                _cocktail.value = repository.getById(id)
+                _cocktail.value = getCocktailByIdUseCase(id)
             } catch (e: Exception) {
                 _error.value = "Failed to load cocktail"
             } finally {
@@ -53,7 +57,7 @@ class DetailViewModel(
             _isLoading.value = true
             _error.value = null
             try {
-                val next = repository.getRandom()
+                val next = getRandomCocktailUseCase()
                 loadCocktail(next.id)
             } catch (e: Exception) {
                 _error.value = "Failed to load random cocktail"
@@ -64,10 +68,8 @@ class DetailViewModel(
 
     fun toggleFavorite() {
         val cocktail = _cocktail.value ?: return
-        val currentlyFavorite = _isFavorite.value ?: false
         viewModelScope.launch {
-            if (currentlyFavorite) favoritesRepository.remove(cocktail.id)
-            else favoritesRepository.add(cocktail)
+            toggleFavoriteUseCase(cocktail, _isFavorite.value ?: false)
         }
     }
 }

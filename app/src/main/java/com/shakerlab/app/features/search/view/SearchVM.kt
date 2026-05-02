@@ -6,15 +6,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.shakerlab.app.domain.model.CocktailPreview
-import com.shakerlab.app.domain.repository.CocktailRepository
-import com.shakerlab.app.domain.repository.FavoritesRepository
 import com.shakerlab.app.domain.repository.RecentSearchRepository
+import com.shakerlab.app.domain.usecase.cocktail.SearchCocktailsUseCase
+import com.shakerlab.app.domain.usecase.favorites.GetFavoritesUseCase
+import com.shakerlab.app.domain.usecase.favorites.ToggleFavoriteUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class SearchViewModel(
-    private val repository: CocktailRepository,
-    private val favoritesRepository: FavoritesRepository,
+    private val searchCocktailsUseCase: SearchCocktailsUseCase,
+    private val getFavoritesUseCase: GetFavoritesUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     private val recentSearchRepository: RecentSearchRepository
 ) : ViewModel() {
 
@@ -34,7 +36,7 @@ class SearchViewModel(
     private val _isEmpty = MutableLiveData(false)
     val isEmpty: LiveData<Boolean> = _isEmpty
 
-    val favoriteIds: LiveData<Set<String>> = favoritesRepository.getAll().map { list ->
+    val favoriteIds: LiveData<Set<String>> = getFavoritesUseCase().map { list ->
         list.map { it.id }.toSet()
     }
 
@@ -55,7 +57,7 @@ class SearchViewModel(
             _error.value = null
             _isEmpty.value = false
             try {
-                val cocktails = repository.searchByName(trimmed)
+                val cocktails = searchCocktailsUseCase(trimmed)
                 allResults.value = cocktails
                 applyFilter()
                 _isEmpty.value = _results.value.isNullOrEmpty()
@@ -96,11 +98,7 @@ class SearchViewModel(
 
     fun toggleFavorite(preview: CocktailPreview) {
         viewModelScope.launch {
-            if (preview.id in (favoriteIds.value ?: emptySet())) {
-                favoritesRepository.remove(preview.id)
-            } else {
-                favoritesRepository.addPreview(preview)
-            }
+            toggleFavoriteUseCase(preview, favoriteIds.value ?: emptySet())
         }
     }
 

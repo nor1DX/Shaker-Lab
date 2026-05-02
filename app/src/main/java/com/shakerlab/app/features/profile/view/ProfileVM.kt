@@ -11,19 +11,27 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.shakerlab.app.domain.repository.BarRepository
-import com.shakerlab.app.domain.repository.FavoritesRepository
+import com.shakerlab.app.domain.usecase.bar.ClearBarUseCase
+import com.shakerlab.app.domain.usecase.bar.GetBarIngredientsUseCase
+import com.shakerlab.app.domain.usecase.bar.SyncBarUseCase
+import com.shakerlab.app.domain.usecase.favorites.ClearFavoritesUseCase
+import com.shakerlab.app.domain.usecase.favorites.GetFavoritesUseCase
+import com.shakerlab.app.domain.usecase.favorites.SyncFavoritesUseCase
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class ProfileViewModel(
-    private val favoritesRepository: FavoritesRepository,
-    private val barRepository: BarRepository,
+    private val getFavoritesUseCase: GetFavoritesUseCase,
+    private val getBarIngredientsUseCase: GetBarIngredientsUseCase,
+    private val syncFavoritesUseCase: SyncFavoritesUseCase,
+    private val syncBarUseCase: SyncBarUseCase,
+    private val clearFavoritesUseCase: ClearFavoritesUseCase,
+    private val clearBarUseCase: ClearBarUseCase,
     private val auth: FirebaseAuth
 ) : ViewModel() {
 
-    val favoritesCount: LiveData<Int> = favoritesRepository.getAll().map { it.size }
-    val barCount: LiveData<Int> = barRepository.getIngredients().map { it.size }
+    val favoritesCount: LiveData<Int> = getFavoritesUseCase().map { it.size }
+    val barCount: LiveData<Int> = getBarIngredientsUseCase().map { it.size }
 
     private val _currentUser = MutableLiveData<FirebaseUser?>(auth.currentUser)
     val currentUser: LiveData<FirebaseUser?> = _currentUser
@@ -36,8 +44,8 @@ class ProfileViewModel(
                 val credential = GoogleAuthProvider.getCredential(account.idToken, null)
                 val result = auth.signInWithCredential(credential).await()
                 _currentUser.value = result.user
-                favoritesRepository.syncFromCloud()
-                barRepository.syncFromCloud()
+                syncFavoritesUseCase()
+                syncBarUseCase()
             } catch (_: Exception) { }
         }
     }
@@ -48,10 +56,10 @@ class ProfileViewModel(
     }
 
     fun clearFavorites() {
-        viewModelScope.launch { favoritesRepository.clearAll() }
+        viewModelScope.launch { clearFavoritesUseCase() }
     }
 
     fun clearBar() {
-        viewModelScope.launch { barRepository.clearAll() }
+        viewModelScope.launch { clearBarUseCase() }
     }
 }
