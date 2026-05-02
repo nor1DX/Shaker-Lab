@@ -19,10 +19,10 @@ class FavoritesFragment : Fragment() {
     private var _binding: FragmentFavoritesBinding? = null
     private val binding get() = _binding!!
 
-    private val vm: FavoritesVM by viewModel()
+    private val viewModel: FavoritesViewModel by viewModel()
     private val adapter = CocktailPreviewAdapter(
         onClick = { preview -> findNavController().navigate(NavGraphDirections.actionGlobalDetail(preview.id)) },
-        onFavorite = { preview -> vm.toggleFavorite(preview) }
+        onFavorite = { preview -> viewModel.toggleFavorite(preview) }
     )
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -40,13 +40,13 @@ class FavoritesFragment : Fragment() {
             findNavController().navigate(R.id.catalogFragment)
         }
 
-        vm.favorites.observe(viewLifecycleOwner) { list ->
+        viewModel.favorites.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
             binding.textEmpty.isVisible = list.isEmpty()
             binding.recyclerFavorites.isVisible = list.isNotEmpty()
         }
 
-        vm.favoriteIds.observe(viewLifecycleOwner) { ids -> adapter.favoriteIds = ids }
+        viewModel.favoriteIds.observe(viewLifecycleOwner) { ids -> adapter.favoriteIds = ids }
     }
 
     override fun onDestroyView() {

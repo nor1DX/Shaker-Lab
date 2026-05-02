@@ -25,10 +25,10 @@ class MyBarFragment : Fragment() {
     private var _binding: FragmentMyBarBinding? = null
     private val binding get() = _binding!!
 
-    private val vm: MyBarVM by viewModel()
+    private val viewModel: MyBarViewModel by viewModel()
     private val adapter = CocktailPreviewAdapter(
         onClick = { preview -> findNavController().navigate(NavGraphDirections.actionGlobalDetail(preview.id)) },
-        onFavorite = { preview -> vm.toggleFavorite(preview) }
+        onFavorite = { preview -> viewModel.toggleFavorite(preview) }
     )
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -47,7 +47,7 @@ class MyBarFragment : Fragment() {
                 if (dy <= 0) return
                 val lastVisible = layoutManager.findLastVisibleItemPosition()
                 val total = layoutManager.itemCount
-                if (total > 0 && lastVisible >= total - 4) vm.loadMore()
+                if (total > 0 && lastVisible >= total - 4) viewModel.loadMore()
             }
         })
 
@@ -57,18 +57,18 @@ class MyBarFragment : Fragment() {
 
         setupFilterChips()
 
-        vm.barIngredients.observe(viewLifecycleOwner) { ingredients ->
+        viewModel.barIngredients.observe(viewLifecycleOwner) { ingredients ->
             renderChips(ingredients)
         }
 
-        vm.cocktails.observe(viewLifecycleOwner) { cocktails ->
+        viewModel.cocktails.observe(viewLifecycleOwner) { cocktails ->
             adapter.submitList(cocktails)
             updateEmptyState()
         }
 
-        vm.favoriteIds.observe(viewLifecycleOwner) { ids -> adapter.favoriteIds = ids }
+        viewModel.favoriteIds.observe(viewLifecycleOwner) { ids -> adapter.favoriteIds = ids }
 
-        vm.isLoading.observe(viewLifecycleOwner) { loading ->
+        viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
             binding.progressBar.isVisible = loading
             updateEmptyState()
         }
@@ -85,7 +85,7 @@ class MyBarFragment : Fragment() {
         binding.chipGroupFilter.setOnCheckedStateChangeListener { group, checkedIds ->
             val id = checkedIds.firstOrNull() ?: return@setOnCheckedStateChangeListener
             val chip = group.findViewById<Chip>(id)
-            vm.setFilter(chip.text.toString())
+            viewModel.setFilter(chip.text.toString())
         }
     }
 
@@ -115,9 +115,9 @@ class MyBarFragment : Fragment() {
     }
 
     private fun updateEmptyState() {
-        val loading = vm.isLoading.value ?: false
-        val ingredients = vm.barIngredients.value ?: emptyList()
-        val cocktails = vm.cocktails.value ?: emptyList()
+        val loading = viewModel.isLoading.value ?: false
+        val ingredients = viewModel.barIngredients.value ?: emptyList()
+        val cocktails = viewModel.cocktails.value ?: emptyList()
 
         val showEmpty = !loading && (ingredients.isEmpty() || cocktails.isEmpty())
         binding.textEmpty.isVisible = showEmpty
@@ -143,7 +143,7 @@ class MyBarFragment : Fragment() {
                 closeIconTint = android.content.res.ColorStateList.valueOf(gold)
                 chipStrokeColor = android.content.res.ColorStateList.valueOf(gold)
                 chipStrokeWidth = resources.displayMetrics.density * 1f
-                setOnCloseIconClickListener { vm.removeIngredient(name) }
+                setOnCloseIconClickListener { viewModel.removeIngredient(name) }
             }
             binding.chipGroupIngredients.addView(chip)
         }
@@ -154,7 +154,7 @@ class MyBarFragment : Fragment() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_ingredient, null)
         val autoComplete = dialogView.findViewById<AutoCompleteTextView>(R.id.auto_complete_ingredient)
 
-        val allIngredients = vm.allIngredients.value ?: emptyList()
+        val allIngredients = viewModel.allIngredients.value ?: emptyList()
         autoComplete.setAdapter(
             ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, allIngredients)
         )
@@ -164,7 +164,7 @@ class MyBarFragment : Fragment() {
             .setView(dialogView)
             .setPositiveButton("Add") { _, _ ->
                 val name = autoComplete.text.toString().trim()
-                if (name.isNotEmpty()) vm.addIngredient(name)
+                if (name.isNotEmpty()) viewModel.addIngredient(name)
             }
             .setNegativeButton("Cancel", null)
             .show()

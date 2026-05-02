@@ -19,7 +19,7 @@ import com.shakerlab.app.domain.repository.FavoritesRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class ProfileVM(
+class ProfileViewModel(
     private val favoritesRepository: FavoritesRepository,
     private val barRepository: BarRepository,
     private val auth: FirebaseAuth

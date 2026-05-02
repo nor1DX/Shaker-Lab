@@ -8,7 +8,7 @@ import com.shakerlab.app.domain.model.CocktailPreview
 import com.shakerlab.app.domain.repository.FavoritesRepository
 import kotlinx.coroutines.launch
 
-class FavoritesVM(private val repository: FavoritesRepository) : ViewModel() {
+class FavoritesViewModel(private val repository: FavoritesRepository) : ViewModel() {
 
     val favorites: LiveData<List<CocktailPreview>> = repository.getAll()
 

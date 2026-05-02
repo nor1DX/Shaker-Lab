@@ -20,7 +20,7 @@ class DetailFragment : Fragment() {
     private var _binding: FragmentDetailBinding? = null
     private val binding get() = _binding!!
 
-    private val vm: DetailVM by viewModel()
+    private val viewModel: DetailViewModel by viewModel()
 
     private val cocktailId: String by lazy {
         DetailFragmentArgs.fromBundle(requireArguments()).cocktailId
@@ -35,25 +35,25 @@ class DetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnBack.setOnClickListener { findNavController().navigateUp() }
-        binding.btnFavorite.setOnClickListener { vm.toggleFavorite() }
-        binding.fabNextRandom.setOnClickListener { vm.getNextRandom() }
+        binding.btnFavorite.setOnClickListener { viewModel.toggleFavorite() }
+        binding.fabNextRandom.setOnClickListener { viewModel.getNextRandom() }
 
-        vm.loadCocktail(cocktailId)
+        viewModel.loadCocktail(cocktailId)
 
-        vm.cocktail.observe(viewLifecycleOwner) { cocktail ->
+        viewModel.cocktail.observe(viewLifecycleOwner) { cocktail ->
             cocktail?.let { render(it) }
         }
 
-        vm.isLoading.observe(viewLifecycleOwner) { loading ->
+        viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
             binding.progressBar.isVisible = loading
             binding.scrollContent.isVisible = !loading
         }
 
-        vm.error.observe(viewLifecycleOwner) { error ->
+        viewModel.error.observe(viewLifecycleOwner) { error ->
             if (error != null) Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
         }
 
-        vm.isFavorite.observe(viewLifecycleOwner) { isFav ->
+        viewModel.isFavorite.observe(viewLifecycleOwner) { isFav ->
             binding.btnFavorite.setImageResource(
                 if (isFav) R.drawable.ic_favorites else R.drawable.ic_favorites_outline
             )

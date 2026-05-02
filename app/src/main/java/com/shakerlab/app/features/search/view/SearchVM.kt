@@ -17,7 +17,7 @@ private const val PREFS_NAME = "search_prefs"
 private const val KEY_RECENT = "recent_searches"
 private const val MAX_RECENT = 8
 
-class SearchVM(
+class SearchViewModel(
     app: Application,
     private val repository: CocktailRepository,
     private val favoritesRepository: FavoritesRepository

@@ -16,12 +16,12 @@ class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
-    private val vm: ProfileVM by viewModel()
+    private val viewModel: ProfileViewModel by viewModel()
 
     private val signInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        vm.handleSignInResult(result.data)
+        viewModel.handleSignInResult(result.data)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -32,15 +32,15 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        vm.favoritesCount.observe(viewLifecycleOwner) { count ->
+        viewModel.favoritesCount.observe(viewLifecycleOwner) { count ->
             binding.textFavoritesCount.text = count.toString()
         }
 
-        vm.barCount.observe(viewLifecycleOwner) { count ->
+        viewModel.barCount.observe(viewLifecycleOwner) { count ->
             binding.textBarCount.text = count.toString()
         }
 
-        vm.currentUser.observe(viewLifecycleOwner) { user ->
+        viewModel.currentUser.observe(viewLifecycleOwner) { user ->
             if (user != null) {
                 binding.textUserName.text = user.displayName ?: "User"
                 binding.textUserEmail.text = user.email ?: ""
@@ -55,18 +55,18 @@ class ProfileFragment : Fragment() {
         }
 
         binding.btnSignIn.setOnClickListener {
-            signInLauncher.launch(vm.buildSignInIntent(requireContext()))
+            signInLauncher.launch(viewModel.buildSignInIntent(requireContext()))
         }
 
         binding.btnSignOut.setOnClickListener {
-            vm.signOut(requireContext())
+            viewModel.signOut(requireContext())
         }
 
         binding.btnClearFavorites.setOnClickListener {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Clear favorites")
                 .setMessage("Remove all favorite cocktails?")
-                .setPositiveButton("Clear") { _, _ -> vm.clearFavorites() }
+                .setPositiveButton("Clear") { _, _ -> viewModel.clearFavorites() }
                 .setNegativeButton("Cancel", null)
                 .show()
         }
@@ -75,7 +75,7 @@ class ProfileFragment : Fragment() {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Clear bar")
                 .setMessage("Remove all bar ingredients?")
-                .setPositiveButton("Clear") { _, _ -> vm.clearBar() }
+                .setPositiveButton("Clear") { _, _ -> viewModel.clearBar() }
                 .setNegativeButton("Cancel", null)
                 .show()
         }

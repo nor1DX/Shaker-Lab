@@ -24,10 +24,10 @@ class SearchFragment : Fragment() {
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
 
-    private val vm: SearchVM by viewModel()
+    private val viewModel: SearchViewModel by viewModel()
     private val adapter = CocktailPreviewAdapter(
         onClick = { preview -> findNavController().navigate(NavGraphDirections.actionGlobalDetail(preview.id)) },
-        onFavorite = { preview -> vm.toggleFavorite(preview) }
+        onFavorite = { preview -> viewModel.toggleFavorite(preview) }
     )
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -49,26 +49,26 @@ class SearchFragment : Fragment() {
             } else false
         }
 
-        binding.btnClearRecent.setOnClickListener { vm.clearRecentSearches() }
+        binding.btnClearRecent.setOnClickListener { viewModel.clearRecentSearches() }
 
         setupFilterChips()
 
-        vm.results.observe(viewLifecycleOwner) { list ->
+        viewModel.results.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
             binding.chipGroupFilter.isVisible = list.isNotEmpty()
         }
 
-        vm.favoriteIds.observe(viewLifecycleOwner) { ids -> adapter.favoriteIds = ids }
+        viewModel.favoriteIds.observe(viewLifecycleOwner) { ids -> adapter.favoriteIds = ids }
 
-        vm.isLoading.observe(viewLifecycleOwner) { binding.progressBar.isVisible = it }
+        viewModel.isLoading.observe(viewLifecycleOwner) { binding.progressBar.isVisible = it }
 
-        vm.error.observe(viewLifecycleOwner) { error ->
+        viewModel.error.observe(viewLifecycleOwner) { error ->
             if (error != null) Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
         }
 
-        vm.isEmpty.observe(viewLifecycleOwner) { binding.textEmpty.isVisible = it }
+        viewModel.isEmpty.observe(viewLifecycleOwner) { binding.textEmpty.isVisible = it }
 
-        vm.recentSearches.observe(viewLifecycleOwner) { recent ->
+        viewModel.recentSearches.observe(viewLifecycleOwner) { recent ->
             binding.layoutRecent.isVisible = recent.isNotEmpty()
             buildRecentChips(recent)
         }
@@ -79,7 +79,7 @@ class SearchFragment : Fragment() {
         listOf("All", "Alcoholic", "Non-alcoholic").forEach { label ->
             val chip = buildFilterChip(label)
             if (label == "All") chip.isChecked = true
-            chip.setOnClickListener { vm.setAlcoholicFilter(label) }
+            chip.setOnClickListener { viewModel.setAlcoholicFilter(label) }
             binding.chipGroupFilter.addView(chip)
         }
     }
@@ -112,7 +112,7 @@ class SearchFragment : Fragment() {
         val query = binding.editSearch.text?.toString()?.trim() ?: return
         if (query.isEmpty()) return
         hideKeyboard()
-        vm.search(query)
+        viewModel.search(query)
     }
 
     private fun buildRecentChips(searches: List<String>) {
@@ -128,7 +128,7 @@ class SearchFragment : Fragment() {
                 chipStrokeWidth = resources.displayMetrics.density * 1f
                 setOnClickListener {
                     binding.editSearch.setText(query)
-                    vm.search(query)
+                    viewModel.search(query)
                     hideKeyboard()
                 }
             }

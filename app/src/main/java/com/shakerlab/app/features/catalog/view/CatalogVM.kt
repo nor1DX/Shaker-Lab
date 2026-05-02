@@ -15,7 +15,7 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
-class CatalogVM(
+class CatalogViewModel(
     private val repository: CocktailRepository,
     private val favoritesRepository: FavoritesRepository
 ) : ViewModel() {

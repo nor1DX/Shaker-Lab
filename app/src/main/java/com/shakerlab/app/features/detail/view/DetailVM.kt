@@ -10,7 +10,7 @@ import com.shakerlab.app.domain.repository.CocktailRepository
 import com.shakerlab.app.domain.repository.FavoritesRepository
 import kotlinx.coroutines.launch
 
-class DetailVM(
+class DetailViewModel(
     private val repository: CocktailRepository,
     private val favoritesRepository: FavoritesRepository
 ) : ViewModel() {

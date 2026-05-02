@@ -23,11 +23,11 @@ class CatalogFragment : Fragment() {
     private var _binding: FragmentCatalogBinding? = null
     private val binding get() = _binding!!
 
-    private val vm: CatalogVM by viewModel()
+    private val viewModel: CatalogViewModel by viewModel()
 
     private val adapter = CocktailPreviewAdapter(
         onClick = { preview -> findNavController().navigate(NavGraphDirections.actionGlobalDetail(preview.id)) },
-        onFavorite = { preview -> vm.toggleFavorite(preview) }
+        onFavorite = { preview -> viewModel.toggleFavorite(preview) }
     )
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -38,9 +38,9 @@ class CatalogFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.fabRandom.setOnClickListener { vm.getRandom() }
+        binding.fabRandom.setOnClickListener { viewModel.getRandom() }
 
-        vm.randomId.observe(viewLifecycleOwner) { id ->
+        viewModel.randomId.observe(viewLifecycleOwner) { id ->
             if (id != null) findNavController().navigate(NavGraphDirections.actionGlobalDetail(id))
         }
 
@@ -58,17 +58,17 @@ class CatalogFragment : Fragment() {
                 if (dy <= 0) return
                 val lastVisible = layoutManager.findLastVisibleItemPosition()
                 val total = layoutManager.itemCount
-                if (total > 0 && lastVisible >= total - 4) vm.loadMore()
+                if (total > 0 && lastVisible >= total - 4) viewModel.loadMore()
             }
         })
 
         binding.chipGroupCategories.setOnCheckedStateChangeListener { group, checkedIds ->
             val id = checkedIds.firstOrNull() ?: return@setOnCheckedStateChangeListener
             val chip = group.findViewById<Chip>(id)
-            vm.loadByCategory(chip.text.toString())
+            viewModel.loadByCategory(chip.text.toString())
         }
 
-        vm.categories.observe(viewLifecycleOwner) { categories ->
+        viewModel.categories.observe(viewLifecycleOwner) { categories ->
             if (binding.chipGroupCategories.childCount > 0) return@observe
             categories.forEachIndexed { index, category ->
                 val chip = buildFilterChip(category)
@@ -77,13 +77,13 @@ class CatalogFragment : Fragment() {
             }
         }
 
-        vm.cocktails.observe(viewLifecycleOwner) { adapter.submitList(it) }
+        viewModel.cocktails.observe(viewLifecycleOwner) { adapter.submitList(it) }
 
-        vm.favoriteIds.observe(viewLifecycleOwner) { ids -> adapter.favoriteIds = ids }
+        viewModel.favoriteIds.observe(viewLifecycleOwner) { ids -> adapter.favoriteIds = ids }
 
-        vm.isLoading.observe(viewLifecycleOwner) { binding.progressBar.isVisible = it }
+        viewModel.isLoading.observe(viewLifecycleOwner) { binding.progressBar.isVisible = it }
 
-        vm.error.observe(viewLifecycleOwner) { error ->
+        viewModel.error.observe(viewLifecycleOwner) { error ->
             if (error != null) Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
         }
     }

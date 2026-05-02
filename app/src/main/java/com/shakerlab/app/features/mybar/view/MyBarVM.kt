@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 
-class MyBarVM(
+class MyBarViewModel(
     private val barRepository: BarRepository,
     private val cocktailRepository: CocktailRepository,
     private val favoritesRepository: FavoritesRepository
