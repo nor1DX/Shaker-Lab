@@ -1,29 +1,22 @@
 package com.shakerlab.app.features.search.view
 
-import android.app.Application
-import android.content.Context
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.shakerlab.app.domain.model.CocktailPreview
 import com.shakerlab.app.domain.repository.CocktailRepository
 import com.shakerlab.app.domain.repository.FavoritesRepository
+import com.shakerlab.app.domain.repository.RecentSearchRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-private const val PREFS_NAME = "search_prefs"
-private const val KEY_RECENT = "recent_searches"
-private const val MAX_RECENT = 8
-
 class SearchViewModel(
-    app: Application,
     private val repository: CocktailRepository,
-    private val favoritesRepository: FavoritesRepository
-) : AndroidViewModel(app) {
-
-    private val prefs = app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val favoritesRepository: FavoritesRepository,
+    private val recentSearchRepository: RecentSearchRepository
+) : ViewModel() {
 
     private val allResults = MutableLiveData<List<CocktailPreview>>(emptyList())
     private val _results = MutableLiveData<List<CocktailPreview>>(emptyList())
@@ -112,25 +105,16 @@ class SearchViewModel(
     }
 
     fun clearRecentSearches() {
-        prefs.edit().remove(KEY_RECENT).apply()
+        recentSearchRepository.clear()
         _recentSearches.value = emptyList()
     }
 
     private fun saveRecentSearch(query: String) {
-        val current = loadRecentFromPrefs().toMutableList()
-        current.remove(query)
-        current.add(0, query)
-        if (current.size > MAX_RECENT) current.removeAt(current.lastIndex)
-        prefs.edit().putString(KEY_RECENT, current.joinToString("|||")).apply()
-        _recentSearches.value = current
+        recentSearchRepository.save(query)
+        _recentSearches.value = recentSearchRepository.getAll()
     }
 
     private fun loadRecentSearches() {
-        _recentSearches.value = loadRecentFromPrefs()
-    }
-
-    private fun loadRecentFromPrefs(): List<String> {
-        val raw = prefs.getString(KEY_RECENT, "") ?: ""
-        return if (raw.isEmpty()) emptyList() else raw.split("|||")
+        _recentSearches.value = recentSearchRepository.getAll()
     }
 }

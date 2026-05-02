@@ -7,9 +7,11 @@ import com.shakerlab.app.data.local.AppDatabase
 import com.shakerlab.app.data.repository.BarRepositoryImpl
 import com.shakerlab.app.data.repository.CocktailRepositoryImpl
 import com.shakerlab.app.data.repository.FavoritesRepositoryImpl
+import com.shakerlab.app.data.repository.RecentSearchRepositoryImpl
 import com.shakerlab.app.domain.repository.BarRepository
 import com.shakerlab.app.domain.repository.CocktailRepository
 import com.shakerlab.app.domain.repository.FavoritesRepository
+import com.shakerlab.app.domain.repository.RecentSearchRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -27,4 +29,5 @@ val dataModule = module {
     single<CocktailRepository> { CocktailRepositoryImpl(get()) }
     single<FavoritesRepository> { FavoritesRepositoryImpl(get(), get(), get()) }
     single<BarRepository> { BarRepositoryImpl(get(), get(), get()) }
+    single<RecentSearchRepository> { RecentSearchRepositoryImpl(androidContext()) }
 }
