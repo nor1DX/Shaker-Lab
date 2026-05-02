@@ -6,7 +6,7 @@ import com.shakerlab.app.features.favorites.view.FavoritesVM
 import com.shakerlab.app.features.mybar.view.MyBarVM
 import com.shakerlab.app.features.profile.view.ProfileVM
 import com.shakerlab.app.features.search.view.SearchVM
-import org.koin.androidx.viewmodel.dsl.viewModelOf
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val appModule = module {
