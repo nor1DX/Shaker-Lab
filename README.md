@@ -11,7 +11,7 @@ Android-приложение для поиска рецептов коктейл
 | Курсовая DOCX | [ссылка](media/course/course.docx)            |
 | Курсовая PDF | [ссылка](media/course/course.pdf)             |
 | APK | [ссылка](../../releases)                      |
-| Видео | [ссылка](media/video/all.mp4)                 |
+| Видео | [ссылка]([media/video/all.mp4](https://drive.google.com/file/d/10aCGLtbI12OB60WS5yjampps0FNxtke7/view))                 |
 
 ## Стек
 
