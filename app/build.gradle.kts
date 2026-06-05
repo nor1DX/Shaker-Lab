@@ -1,8 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.ksp)
-    alias(libs.plugins.androidx.navigation.safeargs)
     alias(libs.plugins.google.services)
 }
 
@@ -39,7 +39,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
-        viewBinding = true
+        compose = true
     }
 }
 
@@ -48,11 +48,22 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
-    implementation(libs.androidx.constraintlayout)
 
-    // Navigation
-    implementation(libs.androidx.navigation.fragment)
-    implementation(libs.androidx.navigation.ui)
+    // Compose
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
+    implementation(libs.compose.runtime.livedata)
+    implementation(libs.compose.foundation)
+    implementation(libs.activity.compose)
+    implementation(libs.navigation.compose)
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.koin.compose)
+    implementation(libs.coil.compose)
+    debugImplementation(libs.compose.ui.tooling)
 
     // Room
     implementation(libs.androidx.room.runtime)
@@ -67,9 +78,6 @@ dependencies {
     // Koin
     implementation(libs.koin.android)
 
-    // Coil
-    implementation(libs.coil)
-
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
@@ -78,9 +86,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.livedata)
-
-    // RecyclerView
-    implementation(libs.androidx.recyclerview)
 
     // Splash screen
     implementation(libs.androidx.splashscreen)
