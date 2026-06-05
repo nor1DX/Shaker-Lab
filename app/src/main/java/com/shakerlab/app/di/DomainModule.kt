@@ -6,6 +6,7 @@ import com.shakerlab.app.domain.usecase.bar.GetBarIngredientsUseCase
 import com.shakerlab.app.domain.usecase.bar.RemoveBarIngredientUseCase
 import com.shakerlab.app.domain.usecase.bar.SyncBarUseCase
 import com.shakerlab.app.domain.usecase.cocktail.FilterByCategoryUseCase
+import com.shakerlab.app.domain.usecase.cocktail.FilterByIngredientUseCase
 import com.shakerlab.app.domain.usecase.cocktail.GetAllIngredientsUseCase
 import com.shakerlab.app.domain.usecase.cocktail.GetCategoriesUseCase
 import com.shakerlab.app.domain.usecase.cocktail.GetCocktailByIdUseCase
@@ -24,6 +25,7 @@ val domainModule = module {
     factory { GetRandomCocktailUseCase(get()) }
     factory { GetCategoriesUseCase(get()) }
     factory { FilterByCategoryUseCase(get()) }
+    factory { FilterByIngredientUseCase(get()) }
     factory { SearchCocktailsUseCase(get()) }
     factory { GetAllIngredientsUseCase(get()) }
 

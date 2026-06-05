@@ -11,9 +11,11 @@ import com.shakerlab.app.domain.usecase.cocktail.GetCategoriesUseCase
 import com.shakerlab.app.domain.usecase.cocktail.GetRandomCocktailUseCase
 import com.shakerlab.app.domain.usecase.favorites.GetFavoritesUseCase
 import com.shakerlab.app.domain.usecase.favorites.ToggleFavoriteUseCase
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
@@ -34,6 +36,9 @@ class CatalogViewModel(
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _isLoadingMore = MutableLiveData(false)
+    val isLoadingMore: LiveData<Boolean> = _isLoadingMore
 
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
@@ -69,16 +74,18 @@ class CatalogViewModel(
         seen.clear()
         categoryJob?.cancel()
         categoryJob = viewModelScope.launch {
+            // Debounce: ignore rapid taps on different category chips
+            delay(150)
             _isLoading.value = true
             _error.value = null
             try {
                 val cocktails = filterByCategoryUseCase(category)
                 cocktails.forEach { seen.add(it.id) }
                 _cocktails.value = cocktails
-            } catch (e: kotlinx.coroutines.CancellationException) {
+            } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
-                _error.value = "Failed to load cocktails"
+                _error.value = "Не удалось загрузить коктейли"
             } finally {
                 _isLoading.value = false
             }
@@ -86,14 +93,14 @@ class CatalogViewModel(
     }
 
     fun loadMore() {
-        if (_isLoading.value == true) return
+        if (_isLoading.value == true || _isLoadingMore.value == true) return
         viewModelScope.launch {
-            _isLoading.value = true
+            _isLoadingMore.value = true
             try {
                 val newItems = supervisorScope {
                     (1..6).map {
                         async {
-                            try { withTimeout(10_000) { getRandomCocktailUseCase() } }
+                            try { withTimeout(5_000) { getRandomCocktailUseCase() } }
                             catch (_: Exception) { null }
                         }
                     }.awaitAll().filterNotNull()
@@ -103,22 +110,26 @@ class CatalogViewModel(
                 if (newItems.isNotEmpty()) {
                     _cocktails.value = (_cocktails.value ?: emptyList()) + newItems
                 }
-            } catch (_: Exception) { }
-            finally { _isLoading.value = false }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+            } finally {
+                _isLoadingMore.value = false
+            }
         }
     }
 
     fun getRandom() {
-        if (_isLoading.value == true) return
         viewModelScope.launch {
-            _isLoading.value = true
             try {
                 val cocktail = getRandomCocktailUseCase()
                 _randomId.value = cocktail.id
-                _randomId.value = null
             } catch (_: Exception) { }
-            finally { _isLoading.value = false }
         }
+    }
+
+    fun onRandomNavigated() {
+        _randomId.value = null
     }
 
     fun toggleFavorite(preview: CocktailPreview) {
