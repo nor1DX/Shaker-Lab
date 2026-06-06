@@ -6,10 +6,10 @@ Android-приложение для поиска рецептов коктейл
 
 | Артефакт | Ссылка                                        |
 |---|-----------------------------------------------|
-| Презентация PPTX | [ссылка](media/presentation/presentation.pptx) |
-| Презентация PDF | [ссылка](media/presentation/presentation.pdf) |
-| Курсовая DOCX | [ссылка](media/course/course.docx)            |
-| Курсовая PDF | [ссылка](media/course/course.pdf)             |
+| Презентация PPTX | [ссылка](media/presen.pptx) |
+| Презентация PDF | [ссылка](media/present.pdf) |
+| Курсовая DOCX | [ссылка](media/ИТОГОВЫЙ(2).docx)            |
+| Курсовая PDF | [ссылка](media/ИТОГОВЫЙ.pdf)             |
 | APK | [ссылка](../../releases)                      |
 | Видео | [ссылка](https://drive.google.com/file/d/10aCGLtbI12OB60WS5yjampps0FNxtke7/view?usp=sharing)       |
 
