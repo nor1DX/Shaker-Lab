@@ -9,7 +9,7 @@ Android-приложение для поиска рецептов коктейл
 | Презентация PPTX | [ссылка](media/present.pptx) |
 | Презентация PDF | [ссылка](media/present.pdf) |
 | Курсовая DOCX | [ссылка](media/ИТОГОВЫЙЙ.docx)            |
-| Курсовая PDF | [ссылка](media/ИТОГОВЫЙЙ.pdf)             |
+| Курсовая PDF | [ссылка](media/ИТГОВЫЙЙ.pdf)             |
 | APK | [ссылка](../../releases)                      |
 | Видео | [ссылка](https://drive.google.com/file/d/10aCGLtbI12OB60WS5yjampps0FNxtke7/view?usp=sharing)       |
 
